@@ -1,0 +1,39 @@
+{
+  "instance_id": "toy_public",
+  "candidate_sites": [
+    {
+      "site_id": "ercot-west",
+      "capex_billion": 8.1,
+      "grid_delay_risk": 0.31,
+      "water_shortfall_risk": 0.22,
+      "silicon_delay_risk": 0.18
+    },
+    {
+      "site_id": "pjm-west",
+      "capex_billion": 8.6,
+      "grid_delay_risk": 0.18,
+      "water_shortfall_risk": 0.14,
+      "silicon_delay_risk": 0.24
+    },
+    {
+      "site_id": "az-campus",
+      "capex_billion": 7.9,
+      "grid_delay_risk": 0.35,
+      "water_shortfall_risk": 0.41,
+      "silicon_delay_risk": 0.16
+    }
+  ],
+  "cost_weights": {
+    "capex": 1.0,
+    "grid_delay": 2.4,
+    "water_shortfall": 1.8,
+    "silicon_delay": 1.3
+  },
+  "announced_choice": {"site_id": "az-campus"},
+  "citations": {
+    "capex": "https://www.sec.gov/",
+    "grid_delay": "https://www.ferc.gov/",
+    "water_shortfall": "https://www.usbr.gov/",
+    "silicon_delay": "https://www.bis.gov/"
+  }
+}
