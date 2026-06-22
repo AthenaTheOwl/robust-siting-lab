@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["instance_id", "candidate_sites", "cost_weights", "announced_choice", "citations"],
+  "properties": {
+    "instance_id": {"type": "string"},
+    "candidate_sites": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["site_id", "capex_billion", "grid_delay_risk", "water_shortfall_risk", "silicon_delay_risk"],
+        "properties": {
+          "site_id": {"type": "string"},
+          "capex_billion": {"type": "number"},
+          "grid_delay_risk": {"type": "number"},
+          "water_shortfall_risk": {"type": "number"},
+          "silicon_delay_risk": {"type": "number"}
+        }
+      }
+    },
+    "cost_weights": {"type": "object"},
+    "announced_choice": {"type": "object", "required": ["site_id"]},
+    "citations": {"type": "object"}
+  }
+}
