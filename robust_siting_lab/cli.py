@@ -60,6 +60,54 @@ def _solve(args: argparse.Namespace) -> int:
     return 0
 
 
+def _load_result(result_path: Path) -> dict:
+    """Read the committed solution if present, else solve the default instance."""
+    if result_path.is_file():
+        return json.loads(result_path.read_text(encoding="utf-8"))
+    instance = load_instance(DEFAULT_INSTANCE)
+    solution = solve_instance(instance)
+    return {"solution": solution, "regret": compute_regret(solution)}
+
+
+def _show(_args: argparse.Namespace) -> int:
+    """Print a readable, ranked siting result (no args needed)."""
+    payload = _load_result(DEFAULT_RESULT)
+    solution = payload["solution"]
+    regret = payload["regret"]
+    rows = solution["scored_sites"]  # already sorted lowest-cost first
+    selected = solution["selected_site"]
+    announced = solution["announced_site"]
+
+    print(f"robust-siting-lab - joint grid/water/silicon siting risk, instance={solution['instance_id']}")
+    print(f"{len(rows)} candidate site(s), ranked by expected cost (lower is better)\n")
+    header = f"{'rank':>4}  {'site':<14} {'expected cost':>14}   note"
+    print(header)
+    print("-" * len(header))
+    for i, row in enumerate(rows, start=1):
+        site = row["site_id"]
+        marks = []
+        if site == selected:
+            marks.append("optimal")
+        if site == announced:
+            marks.append("announced")
+        note = ", ".join(marks)
+        print(f"{i:>4}  {site:<14} {row['expected_cost']:>14.3f}   {note}")
+
+    print(
+        f"\nlowest expected cost: {selected} at {solution['selected_expected_cost']:.3f}."
+    )
+    if announced == selected:
+        print("the announced choice is the optimal site — zero regret.")
+    else:
+        print(
+            f"announced choice {announced} costs {solution['announced_expected_cost']:.3f}, "
+            f"carrying regret of {regret['announced_regret']:.3f} "
+            f"({100 * regret['announced_regret'] / solution['selected_expected_cost']:.1f}% over optimal) "
+            f"versus picking {selected}."
+        )
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="robust_siting_lab")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -69,6 +117,8 @@ def build_parser() -> argparse.ArgumentParser:
     solve.add_argument("--instance", default=str(DEFAULT_INSTANCE))
     solve.add_argument("--out", default=str(DEFAULT_RESULT))
     solve.set_defaults(func=_solve)
+    show = sub.add_parser("show", help="print a readable ranked siting result")
+    show.set_defaults(func=_show)
     return parser
 
 

@@ -19,6 +19,34 @@ To regenerate the checked result:
 python -m robust_siting_lab solve --instance benchmarks/toy_public.json --out results/toy_public.json
 ```
 
+For a readable ranked result (no flags), reading the committed solution:
+
+```powershell
+python -m robust_siting_lab show
+```
+
+It prints the candidate sites ranked by expected cost, marks the optimal and
+announced sites, and reports the regret the announced choice carries.
+
+## live demo
+
+A Streamlit app (`streamlit_app.py`) wraps the same result as an interactive page -
+the ranked-site table, the optimal/announced/regret metrics, and the cost weights
+with their source citations. It reads the committed `results/toy_public.json`; no
+network, no secrets.
+
+Run it locally:
+
+```powershell
+python -m pip install -r requirements.txt
+streamlit run streamlit_app.py
+```
+
+Live: deploy on [Streamlit Community Cloud](https://share.streamlit.io) - new app,
+repo `AthenaTheOwl/robust-siting-lab`, branch `main`, main file `streamlit_app.py`.
+
+<!-- live-url: (paste the Streamlit Community Cloud URL here once deployed) -->
+
 ## What ships in v0.1
 
 - `benchmarks/toy_public.json`: three-site toy benchmark with public-source-shaped citations.
