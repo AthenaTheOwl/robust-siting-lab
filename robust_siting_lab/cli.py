@@ -55,7 +55,16 @@ def _validate(_args: argparse.Namespace) -> int:
 
 
 def _solve(args: argparse.Namespace) -> int:
-    payload = _write_outputs(Path(args.instance), Path(args.out), DEFAULT_REPORT)
+    try:
+        payload = _write_outputs(Path(args.instance), Path(args.out), DEFAULT_REPORT)
+    except OSError as exc:
+        # missing file, a directory in place of the file, permission denied
+        raise SystemExit(f"cannot read instance {args.instance}: {exc}")
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"instance {args.instance} is not valid JSON: {exc}")
+    except KeyError as exc:
+        # solve_instance indexes required keys directly; name the missing one
+        raise SystemExit(f"instance {args.instance} is missing required key: {exc.args[0]}")
     print(json.dumps(payload["solution"], indent=2, sort_keys=True))
     return 0
 
