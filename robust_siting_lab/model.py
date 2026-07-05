@@ -3,21 +3,8 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-
-
-@dataclass(frozen=True)
-class CapexPlan:
-    scenario_id: str
-    queue_projects: int
-
-
-@dataclass(frozen=True)
-class FactorScore:
-    name: str
-    score: float
 
 
 def load_instance(path: Path) -> dict[str, Any]:
@@ -54,11 +41,3 @@ def solve_instance(instance: dict[str, Any]) -> dict[str, Any]:
         "announced_expected_cost": announced["expected_cost"],
         "scored_sites": scored,
     }
-
-
-def rank_constraints(plan: CapexPlan) -> list[FactorScore]:
-    return [
-        FactorScore("grid-delay", min(1.0, plan.queue_projects / 10.0)),
-        FactorScore("water-shortfall", 0.42),
-        FactorScore("silicon-delay", 0.37),
-    ]
