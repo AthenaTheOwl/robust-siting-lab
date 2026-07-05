@@ -1,0 +1,3 @@
+{"announced_expected_cost": 9.474, "announced_regret": 0.0, "announced_site": "ercot-west", "instance_id": "toy_public", "optimizer_regret_vs_best": 0.0, "selected_site": "ercot-west"}
+{"announced_expected_cost": 9.596, "announced_regret": 0.122, "announced_site": "pjm-west", "instance_id": "toy_public", "optimizer_regret_vs_best": 0.0, "selected_site": "ercot-west"}
+{"announced_expected_cost": 9.686, "announced_regret": 0.212, "announced_site": "az-campus", "instance_id": "toy_public", "optimizer_regret_vs_best": 0.0, "selected_site": "ercot-west"}
