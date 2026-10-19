@@ -21,7 +21,8 @@ reports/toy_public.jsonl
 
 - `robust_siting_lab.cli` owns the no-argument validation command.
 - `robust_siting_lab.model` loads the benchmark and scores candidate sites.
-- `robust_siting_lab.scoring` computes announced-choice and optimizer regret.
+- `robust_siting_lab.scoring` computes announced-choice and optimizer regret, and
+  the announced regret's sensitivity to the hand-set risk weights.
 - `scripts/validate_schemas.py` checks the benchmark schema.
 - `scripts/sources_only_public.py` checks that citations are public URLs.
 
