@@ -15,7 +15,35 @@ def test_solver_selects_lowest_expected_cost() -> None:
 def test_regret_is_reported() -> None:
     regret = compute_regret(solve_instance(load_instance(Path("benchmarks/toy_public.json"))))
     assert regret["announced_regret"] >= 0
-    assert regret["optimizer_regret_vs_best"] == 0.0
+
+
+def test_optimizer_regret_is_gap_between_selected_and_best() -> None:
+    # The selected site's cost minus the cheapest scored site's cost, computed
+    # from scored_sites rather than assumed to be zero.
+    solution = {
+        "instance_id": "synthetic",
+        "selected_site": "b",
+        "selected_expected_cost": 9.6,
+        "announced_site": "c",
+        "announced_expected_cost": 9.7,
+        "scored_sites": [
+            {"site_id": "a", "expected_cost": 9.474},
+            {"site_id": "b", "expected_cost": 9.6},
+            {"site_id": "c", "expected_cost": 9.7},
+        ],
+    }
+    regret = compute_regret(solution)
+    assert regret["optimizer_regret_vs_best"] == 0.126
+    assert regret["announced_regret"] == 0.1
+
+
+def test_optimizer_regret_on_toy_instance_matches_cost_gap() -> None:
+    solution = solve_instance(load_instance(Path("benchmarks/toy_public.json")))
+    best = min(row["expected_cost"] for row in solution["scored_sites"])
+    regret = compute_regret(solution)
+    assert regret["optimizer_regret_vs_best"] == round(
+        solution["selected_expected_cost"] - best, 6
+    )
 
 
 def test_scored_costs_are_pinned() -> None:
