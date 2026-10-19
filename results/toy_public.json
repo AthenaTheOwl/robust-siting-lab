@@ -26,5 +26,51 @@
     ],
     "selected_expected_cost": 9.474,
     "selected_site": "ercot-west"
+  },
+  "weight_sensitivity": {
+    "announced_optimal_scale_range": [
+      0.0,
+      0.485437
+    ],
+    "fixed_weights": [
+      "capex"
+    ],
+    "grid": [
+      {
+        "announced_regret": 0.006,
+        "announced_regret_pct": 0.068283,
+        "risk_weight_scale": 0.5,
+        "selected_site": "ercot-west"
+      },
+      {
+        "announced_regret": 0.109,
+        "announced_regret_pct": 1.193801,
+        "risk_weight_scale": 0.75,
+        "selected_site": "ercot-west"
+      },
+      {
+        "announced_regret": 0.212,
+        "announced_regret_pct": 2.237703,
+        "risk_weight_scale": 1.0,
+        "selected_site": "ercot-west"
+      },
+      {
+        "announced_regret": 0.315,
+        "announced_regret_pct": 3.208556,
+        "risk_weight_scale": 1.25,
+        "selected_site": "ercot-west"
+      },
+      {
+        "announced_regret": 0.485,
+        "announced_regret_pct": 4.804835,
+        "risk_weight_scale": 1.5,
+        "selected_site": "pjm-west"
+      }
+    ],
+    "scaled_weights": [
+      "grid_delay",
+      "water_shortfall",
+      "silicon_delay"
+    ]
   }
 }

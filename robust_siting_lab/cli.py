@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Sequence
 
 from robust_siting_lab.model import load_instance, solve_instance
-from robust_siting_lab.scoring import compute_regret
+from robust_siting_lab.scoring import compute_regret, weight_sensitivity
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,7 +19,11 @@ def _write_outputs(instance_path: Path, result_path: Path, report_path: Path) ->
     instance = load_instance(instance_path)
     solution = solve_instance(instance)
     regret = compute_regret(solution)
-    payload = {"solution": solution, "regret": regret}
+    payload = {
+        "solution": solution,
+        "regret": regret,
+        "weight_sensitivity": weight_sensitivity(instance),
+    }
     result_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.parent.mkdir(parents=True, exist_ok=True)
     result_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -75,7 +79,11 @@ def _load_result(result_path: Path) -> dict:
         return json.loads(result_path.read_text(encoding="utf-8"))
     instance = load_instance(DEFAULT_INSTANCE)
     solution = solve_instance(instance)
-    return {"solution": solution, "regret": compute_regret(solution)}
+    return {
+        "solution": solution,
+        "regret": compute_regret(solution),
+        "weight_sensitivity": weight_sensitivity(instance),
+    }
 
 
 def _show(_args: argparse.Namespace) -> int:
@@ -114,6 +122,27 @@ def _show(_args: argparse.Namespace) -> int:
             f"({100 * regret['announced_regret'] / solution['selected_expected_cost']:.1f}% over optimal) "
             f"versus picking {selected}."
         )
+
+    sensitivity = payload.get("weight_sensitivity")
+    if sensitivity:
+        print(
+            "\nthat percentage depends on the hand-set weights. scaling the "
+            f"{'/'.join(sensitivity['scaled_weights'])} weights together "
+            f"({'/'.join(sensitivity['fixed_weights'])} held fixed):"
+        )
+        for row in sensitivity["grid"]:
+            print(
+                f"  x{row['risk_weight_scale']:<5} best {row['selected_site']:<14} "
+                f"announced regret {row['announced_regret']:.3f} "
+                f"({row['announced_regret_pct']:.1f}%)"
+            )
+        span = sensitivity["announced_optimal_scale_range"]
+        if span is None:
+            print(f"{announced} is not optimal at any risk-weight scale.")
+        elif span[1] is None:
+            print(f"{announced} is optimal at any risk-weight scale of x{span[0]:.3f} or more.")
+        else:
+            print(f"{announced} is optimal when the risk weights are scaled by x{span[0]:.3f} to x{span[1]:.3f}.")
     return 0
 
 

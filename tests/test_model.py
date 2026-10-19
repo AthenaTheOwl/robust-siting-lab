@@ -3,7 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 
 from robust_siting_lab.model import load_instance, solve_instance
-from robust_siting_lab.scoring import compute_regret
+from robust_siting_lab.scoring import (
+    announced_optimal_scale_range,
+    compute_regret,
+    scale_risk_weights,
+    weight_sensitivity,
+)
 
 
 def test_solver_selects_lowest_expected_cost() -> None:
@@ -65,3 +70,56 @@ def test_announced_regret_magnitude_is_pinned() -> None:
     # scales it cannot pass on a >= 0 check alone.
     regret = compute_regret(solve_instance(load_instance(Path("benchmarks/toy_public.json"))))
     assert regret["announced_regret"] == 0.212
+
+
+def test_announced_optimal_scale_range_on_toy_instance() -> None:
+    # az-campus has the lowest capex, so it wins once the risk weights shrink
+    # far enough: 7.9 + 1.786k <= 8.1 + 1.374k  ->  k <= 0.2 / 0.412.
+    instance = load_instance(Path("benchmarks/toy_public.json"))
+    assert announced_optimal_scale_range(instance) == [0.0, 0.485437]
+    for scale, announced_wins in ((0.48, True), (0.49, False)):
+        scaled = {**instance, "cost_weights": scale_risk_weights(instance["cost_weights"], scale)}
+        assert (solve_instance(scaled)["selected_site"] == "az-campus") is announced_wins
+
+
+def test_announced_optimal_scale_range_unbounded_and_empty() -> None:
+    weights = {"capex": 1.0, "grid_delay": 1.0, "water_shortfall": 1.0, "silicon_delay": 1.0}
+
+    def site(site_id, capex, risk):
+        return {
+            "site_id": site_id,
+            "capex_billion": capex,
+            "grid_delay_risk": risk,
+            "water_shortfall_risk": 0.0,
+            "silicon_delay_risk": 0.0,
+        }
+
+    low_risk_announced = {
+        "candidate_sites": [site("a", 9.0, 0.1), site("b", 8.0, 0.6)],
+        "cost_weights": weights,
+        "announced_choice": {"site_id": "a"},
+    }
+    assert announced_optimal_scale_range(low_risk_announced) == [2.0, None]
+    dominated_announced = {**low_risk_announced, "announced_choice": {"site_id": "c"}}
+    dominated_announced["candidate_sites"] = [site("a", 8.0, 0.1), site("c", 9.0, 0.2)]
+    assert announced_optimal_scale_range(dominated_announced) is None
+
+
+def test_weight_sensitivity_grid_is_pinned() -> None:
+    instance = load_instance(Path("benchmarks/toy_public.json"))
+    sensitivity = weight_sensitivity(instance)
+    assert sensitivity["fixed_weights"] == ["capex"]
+    assert [
+        (row["risk_weight_scale"], row["selected_site"], row["announced_regret"])
+        for row in sensitivity["grid"]
+    ] == [
+        (0.5, "ercot-west", 0.006),
+        (0.75, "ercot-west", 0.109),
+        (1.0, "ercot-west", 0.212),
+        (1.25, "ercot-west", 0.315),
+        (1.5, "pjm-west", 0.485),
+    ]
+    # the unscaled row reproduces the headline regret and its percentage
+    unscaled = sensitivity["grid"][2]
+    assert unscaled["announced_regret"] == compute_regret(solve_instance(instance))["announced_regret"]
+    assert round(unscaled["announced_regret_pct"], 1) == 2.2
