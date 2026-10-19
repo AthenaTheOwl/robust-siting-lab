@@ -106,3 +106,7 @@ The next pass replaces the toy fixture with reviewed public benchmark instances.
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+## Method update
+
+[October method update: A weighted screen is the baseline for a joint-risk experiment](docs/joint-risk-benchmark.md).
