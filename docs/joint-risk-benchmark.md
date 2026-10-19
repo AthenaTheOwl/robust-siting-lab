@@ -2,7 +2,7 @@
 
 Method update: October 18, 2026. Proposed experiments below are not reported as executed results.
 
-The shipped `site_expected_cost` function adds capex and weighted grid, water and silicon risk proxies. `solve_instance` ranks those deterministic totals. This is an inspectable screening baseline; it does not currently solve a two-stage stochastic program, represent joint scenarios, or model recourse. Regret against the best score in the same instance measures disagreement with that screen.
+The shipped `site_expected_cost` function adds weighted capex and weighted grid, water and silicon risk proxies. `solve_instance` ranks those deterministic totals. This is an inspectable screening baseline; it does not currently solve a two-stage stochastic program, represent joint scenarios, or model recourse. Regret against the best score in the same instance measures disagreement with that screen.
 
 The next proposed benchmark should make joint uncertainty explicit. Use a synthetic common shock that simultaneously delays grid equipment and silicon, plus an independent water scenario. Freeze probabilities, site decisions, recourse options and cost units before comparing policies. Include the deterministic screen, a scenario-aware fixed decision and a recourse policy on the same held-out draws.
 
