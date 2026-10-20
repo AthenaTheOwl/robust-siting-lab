@@ -42,13 +42,14 @@ def test_optimizer_regret_is_gap_between_selected_and_best() -> None:
     assert regret["announced_regret"] == 0.1
 
 
-def test_optimizer_regret_on_toy_instance_matches_cost_gap() -> None:
-    solution = solve_instance(load_instance(Path("benchmarks/toy_public.json")))
-    best = min(row["expected_cost"] for row in solution["scored_sites"])
-    regret = compute_regret(solution)
-    assert regret["optimizer_regret_vs_best"] == round(
-        solution["selected_expected_cost"] - best, 6
-    )
+def test_optimizer_regret_is_zero_by_construction_for_solver_output() -> None:
+    # solve_instance enumerates every site and selects the cheapest, so
+    # selected minus best is 0.0 for any instance it solves. The field is a
+    # consistency check, not a measured regret (R-RST-007 needs scenarios).
+    base = load_instance(Path("benchmarks/toy_public.json"))
+    for scale in (0.0, 0.25, 0.485, 1.0, 3.0):
+        instance = {**base, "cost_weights": scale_risk_weights(base["cost_weights"], scale)}
+        assert compute_regret(solve_instance(instance))["optimizer_regret_vs_best"] == 0.0
 
 
 def test_scored_costs_are_pinned() -> None:
@@ -103,6 +104,37 @@ def test_announced_optimal_scale_range_unbounded_and_empty() -> None:
     dominated_announced = {**low_risk_announced, "announced_choice": {"site_id": "c"}}
     dominated_announced["candidate_sites"] = [site("a", 8.0, 0.1), site("c", 9.0, 0.2)]
     assert announced_optimal_scale_range(dominated_announced) is None
+    # same weighted risk as another site but higher capex: no scale helps
+    equal_risk_announced = {**low_risk_announced, "announced_choice": {"site_id": "c"}}
+    equal_risk_announced["candidate_sites"] = [site("a", 8.0, 0.2), site("c", 9.0, 0.2)]
+    assert announced_optimal_scale_range(equal_risk_announced) is None
+
+
+def test_announced_optimal_scale_range_tolerates_float_ties() -> None:
+    # 0.1 + 0.2 and 0.3 are equal weighted risk but differ by ~5e-17 as floats.
+    weights = {"capex": 1.0, "grid_delay": 1.0, "water_shortfall": 1.0, "silicon_delay": 1.0}
+    sites = [
+        {"site_id": "a", "capex_billion": 8.0, "grid_delay_risk": 0.1,
+         "water_shortfall_risk": 0.2, "silicon_delay_risk": 0.0},
+        {"site_id": "b", "capex_billion": 9.0, "grid_delay_risk": 0.3,
+         "water_shortfall_risk": 0.0, "silicon_delay_risk": 0.0},
+    ]
+    instance = {"candidate_sites": sites, "cost_weights": weights}
+    assert announced_optimal_scale_range({**instance, "announced_choice": {"site_id": "a"}}) == [0.0, None]
+    assert announced_optimal_scale_range({**instance, "announced_choice": {"site_id": "b"}}) is None
+
+
+def test_weight_sensitivity_handles_zero_cost_cheapest_site() -> None:
+    zero = {"capex_billion": 0.0, "grid_delay_risk": 0.0,
+            "water_shortfall_risk": 0.0, "silicon_delay_risk": 0.0}
+    instance = {
+        "instance_id": "zero",
+        "candidate_sites": [{**zero, "site_id": "a"}, {**zero, "site_id": "b"}],
+        "cost_weights": {"capex": 1.0, "grid_delay": 1.0, "water_shortfall": 1.0, "silicon_delay": 1.0},
+        "announced_choice": {"site_id": "b"},
+    }
+    grid = weight_sensitivity(instance)["grid"]
+    assert all(row["announced_regret_pct"] is None for row in grid)
 
 
 def test_weight_sensitivity_grid_is_pinned() -> None:
@@ -123,3 +155,11 @@ def test_weight_sensitivity_grid_is_pinned() -> None:
     unscaled = sensitivity["grid"][2]
     assert unscaled["announced_regret"] == compute_regret(solve_instance(instance))["announced_regret"]
     assert round(unscaled["announced_regret_pct"], 1) == 2.2
+    # pin the percentages exactly; the denominator is the cheapest site's cost
+    assert [row["announced_regret_pct"] for row in sensitivity["grid"]] == [
+        0.068283,
+        1.193801,
+        2.237703,
+        3.208556,
+        4.804835,
+    ]

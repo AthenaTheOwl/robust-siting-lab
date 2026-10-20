@@ -2,10 +2,22 @@
 
 from __future__ import annotations
 
+import math
+
 from robust_siting_lab.model import site_expected_cost, solve_instance
 
 
 def compute_regret(solution: dict) -> dict:
+    """Announced-choice regret and optimizer regret for one solved instance.
+
+    optimizer_regret_vs_best is the selected site's cost minus the lowest
+    scored cost. solve_instance is an exhaustive deterministic screen that
+    always selects that lowest cost, so for any solver output this field is
+    0.0 by construction: it is an internal consistency check, not a measured
+    regret or a bound. The spec-0001 R-RST-007 quantity (regret against the
+    perfect-foresight per-scenario optimum) needs scenarios, which v0.1 does
+    not model. The field is kept because R-RST-002-003 lists it.
+    """
     announced_regret = round(
         solution["announced_expected_cost"] - solution["selected_expected_cost"], 6
     )
@@ -60,12 +72,14 @@ def announced_optimal_scale_range(instance: dict) -> list | None:
         # announced optimal vs this site iff capex_gap <= k * risk_gap
         capex_gap = announced_capex - capex
         risk_gap = risk - announced_risk
-        if risk_gap > 0:
+        if math.isclose(risk_gap, 0.0, abs_tol=1e-9):
+            # equal weighted risk (up to float noise): the scale cannot help
+            if capex_gap > 1e-9:
+                return None
+        elif risk_gap > 0:
             low = max(low, capex_gap / risk_gap)
-        elif risk_gap < 0:
+        else:
             high = min(high, capex_gap / risk_gap)
-        elif capex_gap > 0:
-            return None
     if low > high:
         return None
     return [round(low, 6), None if high == float("inf") else round(high, 6)]
@@ -83,7 +97,10 @@ def weight_sensitivity(instance: dict, scales: tuple = SENSITIVITY_SCALES) -> di
                 "risk_weight_scale": scale,
                 "selected_site": solution["selected_site"],
                 "announced_regret": regret["announced_regret"],
-                "announced_regret_pct": round(
+                # undefined when the cheapest site costs 0
+                "announced_regret_pct": None
+                if solution["selected_expected_cost"] == 0
+                else round(
                     100 * regret["announced_regret"] / solution["selected_expected_cost"], 6
                 ),
             }

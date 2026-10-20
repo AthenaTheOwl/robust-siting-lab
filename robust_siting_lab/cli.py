@@ -131,10 +131,12 @@ def _show(_args: argparse.Namespace) -> int:
             f"({'/'.join(sensitivity['fixed_weights'])} held fixed):"
         )
         for row in sensitivity["grid"]:
+            pct = row["announced_regret_pct"]
+            pct_text = "n/a" if pct is None else f"{pct:.1f}%"
             print(
                 f"  x{row['risk_weight_scale']:<5} best {row['selected_site']:<14} "
                 f"announced regret {row['announced_regret']:.3f} "
-                f"({row['announced_regret_pct']:.1f}%)"
+                f"({pct_text})"
             )
         span = sensitivity["announced_optimal_scale_range"]
         if span is None:

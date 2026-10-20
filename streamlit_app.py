@@ -116,7 +116,18 @@ if sensitivity:
         f"{'/'.join(sensitivity['scaled_weights'])} weights together "
         f"({'/'.join(sensitivity['fixed_weights'])} held fixed): {span_text}"
     )
-    st.dataframe(sensitivity["grid"], use_container_width=True, hide_index=True)
+    sensitivity_table = [
+        {
+            "risk-weight scale": row["risk_weight_scale"],
+            "cheapest site": row["selected_site"],
+            "announced regret": round(row["announced_regret"], 3),
+            "% over optimal": None
+            if row["announced_regret_pct"] is None
+            else round(row["announced_regret_pct"], 1),
+        }
+        for row in sensitivity["grid"]
+    ]
+    st.dataframe(sensitivity_table, use_container_width=True, hide_index=True)
 
 if instance is not None:
     with st.expander("cost weights and source citations"):
