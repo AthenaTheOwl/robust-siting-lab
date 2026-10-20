@@ -99,6 +99,36 @@ else:
         f"versus picking **{selected}**."
     )
 
+sensitivity = payload.get("weight_sensitivity")
+if sensitivity:
+    span = sensitivity["announced_optimal_scale_range"]
+    if span is None:
+        span_text = f"{announced} is not optimal at any risk-weight scale."
+    elif span[1] is None:
+        span_text = f"{announced} is optimal at any risk-weight scale of x{span[0]:.3f} or more."
+    else:
+        span_text = (
+            f"{announced} is optimal when the risk weights are scaled by "
+            f"x{span[0]:.3f} to x{span[1]:.3f}."
+        )
+    st.caption(
+        "that percentage depends on the hand-set weights. scaling the "
+        f"{'/'.join(sensitivity['scaled_weights'])} weights together "
+        f"({'/'.join(sensitivity['fixed_weights'])} held fixed): {span_text}"
+    )
+    sensitivity_table = [
+        {
+            "risk-weight scale": row["risk_weight_scale"],
+            "cheapest site": row["selected_site"],
+            "announced regret": round(row["announced_regret"], 3),
+            "% over optimal": None
+            if row["announced_regret_pct"] is None
+            else round(row["announced_regret_pct"], 1),
+        }
+        for row in sensitivity["grid"]
+    ]
+    st.dataframe(sensitivity_table, use_container_width=True, hide_index=True)
+
 if instance is not None:
     with st.expander("cost weights and source citations"):
         weights = instance.get("cost_weights", {})

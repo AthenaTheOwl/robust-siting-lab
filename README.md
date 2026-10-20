@@ -3,7 +3,9 @@
 A data center gets announced on a campus in Arizona. The lab scores three candidate
 sites and finds that one carries 2.2% more expected cost than the cheapest option
 once you price in grid delay, water shortfall, and silicon delay. That 2.2% is the
-regret on the announced choice — the part the press release doesn't mention.
+regret on the announced choice — the part the press release doesn't mention. It is
+also a function of three hand-set risk weights: scale them by 0.5 and it drops to
+0.006 (about 0.07%); scale them by 0.485 or less and the announced site is the cheapest.
 
 ## What it does
 
@@ -42,16 +44,33 @@ rank  site            expected cost   note
 
 lowest expected cost: ercot-west at 9.474.
 announced choice az-campus costs 9.686, carrying regret of 0.212 (2.2% over optimal) versus picking ercot-west.
+
+that percentage depends on the hand-set weights. scaling the grid_delay/water_shortfall/silicon_delay weights together (capex held fixed):
+  x0.5   best ercot-west     announced regret 0.006 (0.1%)
+  x0.75  best ercot-west     announced regret 0.109 (1.2%)
+  x1.0   best ercot-west     announced regret 0.212 (2.2%)
+  x1.25  best ercot-west     announced regret 0.315 (3.2%)
+  x1.5   best pjm-west       announced regret 0.485 (4.8%)
+az-campus is optimal when the risk weights are scaled by x0.000 to x0.485.
 ```
 
 The optimal site is at the top, the announced site is wherever the weighted risk puts
-it, and the gap between them is the regret.
+it, and the gap between them is the regret. The last block shows how far that regret
+leans on the hand-set weights: the three risk weights are scaled together over a
+fixed grid (x0.5 to x1.5) with the capex weight held at 1.0, and the final line gives
+the exact scale range at which the announced site would be the cheapest.
+
+The report also carries `optimizer_regret_vs_best`. The v0.1 solver enumerates every
+site and picks the cheapest, so that field is 0 by construction; it is a consistency
+check, not evidence that the screen is optimal. A regret against a per-scenario
+optimum (spec 0001, R-RST-007) needs scenarios, which v0.1 does not model.
 
 ## Live demo
 
 A Streamlit app (`streamlit_app.py`) wraps the same result as an interactive page —
-the ranked-site table, the optimal/announced/regret metrics, and the cost weights with
-their source citations. It reads the committed `results/toy_public.json`; no network,
+the ranked-site table, the optimal/announced/regret metrics, how the announced regret
+moves when the risk weights are scaled, and the cost weights with their source
+citations. It reads the committed `results/toy_public.json`; no network,
 no secrets.
 
 Run it locally:
@@ -93,7 +112,7 @@ python -m robust_siting_lab solve --instance benchmarks/toy_public.json --out re
 ## Layout
 
 ```
-robust_siting_lab/         cli, model (load + solve), scoring (regret)
+robust_siting_lab/         cli, model (load + solve), scoring (regret + weight sensitivity)
 benchmarks/toy_public.json the three-site fixture + public-source citations
 benchmarks/schema.json     the benchmark shape
 results/toy_public.json    the checked solution
@@ -103,10 +122,10 @@ scripts/  specs/  tests/   schema + sources-public checks, design, gate
 
 The next pass replaces the toy fixture with reviewed public benchmark instances.
 
-## License
-
-MIT. See [LICENSE](LICENSE).
-
 ## Method update
 
 [October method update: A weighted screen is the baseline for a joint-risk experiment](docs/joint-risk-benchmark.md).
+
+## License
+
+MIT. See [LICENSE](LICENSE).

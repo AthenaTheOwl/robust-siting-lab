@@ -19,6 +19,9 @@ def test_show_prints_ranked_result(capsys) -> None:
     assert "announced" in out
     assert "lowest expected cost: ercot-west" in out
     assert "regret" in out
+    # the headline percentage is shown with its dependence on the weights
+    assert "depends on the hand-set weights" in out
+    assert "az-campus is optimal when the risk weights are scaled by x0.000 to x0.485" in out
 
 
 def test_solve_missing_instance_reports_clean_error(capsys) -> None:
