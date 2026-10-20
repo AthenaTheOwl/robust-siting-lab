@@ -5,7 +5,7 @@ sites and finds that one carries 2.2% more expected cost than the cheapest optio
 once you price in grid delay, water shortfall, and silicon delay. That 2.2% is the
 regret on the announced choice — the part the press release doesn't mention. It is
 also a function of three hand-set risk weights: scale them by 0.5 and it drops to
-0.1%; scale them by 0.485 or less and the announced site is the cheapest.
+0.006 (about 0.07%); scale them by 0.485 or less and the announced site is the cheapest.
 
 ## What it does
 
@@ -60,11 +60,17 @@ leans on the hand-set weights: the three risk weights are scaled together over a
 fixed grid (x0.5 to x1.5) with the capex weight held at 1.0, and the final line gives
 the exact scale range at which the announced site would be the cheapest.
 
+The report also carries `optimizer_regret_vs_best`. The v0.1 solver enumerates every
+site and picks the cheapest, so that field is 0 by construction; it is a consistency
+check, not evidence that the screen is optimal. A regret against a per-scenario
+optimum (spec 0001, R-RST-007) needs scenarios, which v0.1 does not model.
+
 ## Live demo
 
 A Streamlit app (`streamlit_app.py`) wraps the same result as an interactive page —
-the ranked-site table, the optimal/announced/regret metrics, and the cost weights with
-their source citations. It reads the committed `results/toy_public.json`; no network,
+the ranked-site table, the optimal/announced/regret metrics, how the announced regret
+moves when the risk weights are scaled, and the cost weights with their source
+citations. It reads the committed `results/toy_public.json`; no network,
 no secrets.
 
 Run it locally:

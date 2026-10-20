@@ -10,5 +10,5 @@ Report expected cost, tail cost, unmet demand and infeasibility separately. A lo
 
 ## References
 
-- https://doi.org/10.1287/opre.1030.0065
-- https://web.stanford.edu/~boyd/cvxbook/
+- Birge, J. R. and Louveaux, F. (2011). *Introduction to Stochastic Programming*, 2nd ed. Springer. https://doi.org/10.1007/978-1-4614-0237-4. Two-stage stochastic programs with recourse, the formulation the proposed benchmark would test against the screen.
+- Boyd, S. and Vandenberghe, L. (2004). *Convex Optimization*. Cambridge University Press. https://web.stanford.edu/~boyd/cvxbook/. General background on the optimization formulations; not a source for any specific claim above.
